@@ -10,7 +10,7 @@ services:
             MYSQL_USER: "grafana"
             MYSQL_PASSWORD: "${GRAFANA_DB_PASS}"
         volumes:
-            - ${ROOT_DIR}/log/mysql:/var/log/mysql
+            - ${ROOT_DIR}/mariadb/log:/var/log/mysql
             - ${ROOT_DIR}/mariadb/data:/var/lib/mysql
             - ${ROOT_DIR}/mariadb/server.cnf:/etc/mysql/conf.d/server.cnf
         ulimits:
@@ -49,7 +49,7 @@ services:
         ports:
             - "3000:3000"
         volumes:
-            - ${ROOT_DIR}/log/grafana:/var/log/grafana
+            - ${ROOT_DIR}/grafana/log:/var/log/grafana
             - ${ROOT_DIR}/grafana/data:/var/lib/grafana
             - ${ROOT_DIR}/grafana/provisioning/:/etc/grafana/provisioning/
         depends_on:
@@ -57,7 +57,7 @@ services:
             - renderer
 
     renderer:
-        image: "${GRAFANA_IMAGE_RENDERER_IMAGE}"
+        image: "${RENDERER_IMAGE}"
         restart: "always"
 
     telegraf:
