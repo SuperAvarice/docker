@@ -1,6 +1,7 @@
 #!/bin/bash
 
 BUILD_DIR="${HOME}/docker/build/monitoring"
+HOME_DIR="${HOME}/docker/bin"
 
 if [[ -z "$@" ]]; then
     echo >&2 "Usage: $0 <command>"
@@ -12,12 +13,12 @@ case "$1" in
   up)
     cd $BUILD_DIR
     docker-compose -p "Monitoring" up -d
-    cd /docker/bin
+    cd $HOME_DIR
   ;;
   down)
     cd $BUILD_DIR
     docker-compose down
-    cd /docker/bin
+    cd $HOME_DIR
   ;;
   restart)
     ./$0 down

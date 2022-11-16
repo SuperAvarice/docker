@@ -10,13 +10,17 @@ services:
             MYSQL_USER: "grafana"
             MYSQL_PASSWORD: "${GRAFANA_DB_PASS}"
         volumes:
-            - ${ROOT_DIR}/mariadb/log:/var/log/mysql
-            - ${ROOT_DIR}/mariadb/data:/var/lib/mysql
-            - ${ROOT_DIR}/mariadb/server.cnf:/etc/mysql/conf.d/server.cnf
+            - ${HOME}/${ROOT_DIR}/mariadb/log:/var/log/mysql
+            - ${HOME}/${ROOT_DIR}/mariadb/data:/var/lib/mysql
+            - ${HOME}/${ROOT_DIR}/mariadb/server.cnf:/etc/mysql/conf.d/server.cnf
         ulimits:
             nofile:
                 soft: 40000
                 hard: 80000
+
+    renderer:
+        image: "${RENDERER_IMAGE}"
+        restart: "always"
 
     grafana:
         image: "${GRAFANA_IMAGE}"
@@ -35,7 +39,6 @@ services:
             GF_AUTH_ANONYMOUS_ORG_ROLE: "Viewer"
             GF_USERS_ALLOW_SIGN_UP: "false"
             GF_SNAPSHOTS_EXTERNAL_ENABLED: "false"
-            GF_INSTALL_PLUGINS: grafana-clock-panel,natel-discrete-panel,grafana-piechart-panel
             GF_LOG_MODE: "file"
             GF_LOG_LEVEL: "warn"
             GF_LOG_FILE_LOG_ROTATE: "true"
@@ -45,20 +48,16 @@ services:
             GF_RENDERING_CALLBACK_URL: "http://grafana:3000/"
             HTTPS_PROXY: "${http_proxy}"
             HTTP_PROXY: "${http_proxy}"
-            NO_PROXY: "$(no_proxy},localhost,renderer,grafana,mariadb"
+            NO_PROXY: "${no_proxy},localhost,renderer,grafana,mariadb,prometheus"
         ports:
             - "3000:3000"
         volumes:
-            - ${ROOT_DIR}/grafana/log:/var/log/grafana
-            - ${ROOT_DIR}/grafana/data:/var/lib/grafana
-            - ${ROOT_DIR}/grafana/provisioning/:/etc/grafana/provisioning/
+            - ${HOME}/${ROOT_DIR}/grafana/log:/var/log/grafana
+            - ${HOME}/${ROOT_DIR}/grafana/data:/var/lib/grafana
+            - ${HOME}/${ROOT_DIR}/grafana/provisioning/:/etc/grafana/provisioning/
         depends_on:
             - mariadb
             - renderer
-
-    renderer:
-        image: "${RENDERER_IMAGE}"
-        restart: "always"
 
     telegraf:
         image: "${TELEGRAF_IMAGE}"
@@ -72,15 +71,15 @@ services:
             HOST_MOUNT_PREFIX: "/hostfs"
         volumes:
             - /:/hostfs:ro
-            - ${ROOT_DIR}/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+            - ${HOME}/${ROOT_DIR}/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
             - /var/run/docker.sock:/var/run/docker.sock
 
     prometheus:
         image: "${PROMETHEUS_IMAGE}"
         restart: "always"
         volumes:
-            - ${ROOT_DIR}/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-            - ${ROOT_DIR}/prometheus/data:/prometheus
+            - ${HOME}/${ROOT_DIR}/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+            - ${HOME}/${ROOT_DIR}/prometheus/data:/prometheus
         command:
             - '--config.file=/etc/prometheus/prometheus.yml'
             - '--storage.tsdb.path=/prometheus'
