@@ -91,8 +91,8 @@ services:
         image: "${POSTGRES_IMAGE}"
         restart: "always"
         volumes:
-        - ${ROOT_DIR}\postgres\data:/var/lib/postgresql/data
-        #- ${ROOT_DIR}\postgres\init-user-db.sh:/docker-entrypoint-initdb.d/init-user-db.sh
+        - ${ROOT_DIR}/postgres/data:/var/lib/postgresql/data
+        #- ${ROOT_DIR}/postgres/init-user-db.sh:/docker-entrypoint-initdb.d/init-user-db.sh
         environment:
         - POSTGRES_PASSWORD="${DB_PW}"
         - POSTGRES_USER=postgres
