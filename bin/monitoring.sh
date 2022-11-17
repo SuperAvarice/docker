@@ -22,8 +22,9 @@ case "$1" in
     chmod 777 ${DATA_DIR}/postgres/data
     chmod 777 ${DATA_DIR}/prometheus/data
     ROOT_DIR=${DATA_DIR} DB_PW=${DB_PW} ADMIN_PW=${ADMIN_PW} docker-compose -p "Monitoring" up -d
-    echo "Go to -- http://localhost:3000"
-    echo "Random Password: $PW"
+    echo "Go to -- http://${HOSTNAME}:3000"
+    echo "Database Password: ${DB_PW}"
+    echo "Grafana Admin Password: ${ADMIN_PW}"
     cd $BIN_DIR
   ;;
   down)

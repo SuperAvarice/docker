@@ -8,7 +8,7 @@ services:
             MYSQL_RANDOM_ROOT_PASSWORD: "yes"
             MYSQL_DATABASE: "grafana"
             MYSQL_USER: "grafana"
-            MYSQL_PASSWORD: "${GRAFANA_DB_PASS}"
+            MYSQL_PASSWORD: "${DB_PW}"
         volumes:
             - ${ROOT_DIR}/mariadb/log:/var/log/mysql
             - ${ROOT_DIR}/mariadb/data:/var/lib/mysql
@@ -30,11 +30,11 @@ services:
             GF_DATABASE_HOST: "mariadb:3306"
             GF_DATABASE_NAME: "grafana"
             GF_DATABASE_USER: "grafana"
-            GF_DATABASE_PASSWORD: "${GRAFANA_DB_PASS}"
+            GF_DATABASE_PASSWORD: "${DB_PW}"
             GF_ANALYTICS_REPORTING_ENABLED: "false"
             GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
             GF_SECURITY_ADMIN_USER: "${ADMIN_USER}"
-            GF_SECURITY_ADMIN_PASSWORD: "${ADMIN_PASSWORD}"
+            GF_SECURITY_ADMIN_PASSWORD: "${ADMIN_PW}"
             GF_AUTH_ANONYMOUS_ENABLED: "${ANONYMOUS_ENABLED}"
             GF_AUTH_ANONYMOUS_ORG_ROLE: "Viewer"
             GF_USERS_ALLOW_SIGN_UP: "false"
