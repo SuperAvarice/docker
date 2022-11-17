@@ -4,7 +4,6 @@ datasources:
 
   - name: Prometheus
     type: prometheus
-    # Access mode - proxy (server in the UI) or direct (browser in the UI).
     access: proxy
     url: http://prometheus:9090
     basicAuth: false
@@ -13,3 +12,33 @@ datasources:
     jsonData:
       httpMethod: POST
       prometheusType: Prometheus
+
+  - name: MariaDB
+    type: mysql
+    access: proxy
+    orgId: 1
+    url: http://mariadb:3306
+    user: grafana
+    database: grafana
+    basicAuth: true
+    isDefault: false
+    jsonData:
+      keepCookies: [ ]
+    secureJsonData:
+      password: $GF_DATABASE_PASSWORD
+    readOnly: true
+    editable: true
+
+  - name: Postgres
+    type: postgres
+    url: http://postgres:5432
+    database: postgres
+    user: postgres
+    secureJsonData:
+      password: $GF_DATABASE_PASSWORD
+    jsonData:
+      sslmode: 'disable'
+      maxOpenConns: 0 # Grafana v5.4+
+      maxIdleConns: 2 # Grafana v5.4+
+      connMaxLifetime: 14400 # Grafana v5.4+
+      timescaledb: false
