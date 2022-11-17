@@ -1,7 +1,12 @@
 #!/bin/bash
 
-BUILD_DIR="${HOME}/docker/build/monitoring"
-HOME_DIR="${HOME}/docker/bin"
+BASE_DIR="${HOME}"
+DB_PW=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c20)
+ADMIN_PW=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c20)
+
+BUILD_DIR="${BASE_DIR}/docker/build/monitoring"
+BIN_DIR="${BASE_DIR}/docker/bin"
+DATA_DIR="${BASE_DIR}/docker/appdata/monitoring"
 
 if [[ -z "$@" ]]; then
     echo >&2 "Usage: $0 <command>"
@@ -12,13 +17,19 @@ fi
 case "$1" in
   up)
     cd $BUILD_DIR
-    docker-compose -p "Monitoring" up -d
-    cd $HOME_DIR
+    chmod 777 ${DATA_DIR}/grafana/data
+    chmod 777 ${DATA_DIR}/mariadb/data
+    chmod 777 ${DATA_DIR}/postgres/data
+    chmod 777 ${DATA_DIR}/prometheus/data
+    ROOT_DIR=${DATA_DIR} DB_PW=${DB_PW} ADMIN_PW=${ADMIN_PW} docker-compose -p "Monitoring" up -d
+    echo "Go to -- http://localhost:3000"
+    echo "Random Password: $PW"
+    cd $BIN_DIR
   ;;
   down)
     cd $BUILD_DIR
     docker-compose down
-    cd $HOME_DIR
+    cd $BIN_DIR
   ;;
   restart)
     ./$0 down

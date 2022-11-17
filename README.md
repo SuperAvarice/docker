@@ -1,6 +1,5 @@
 Monitoring with Prometheus, telegraf.
 Visualize with Grafana.
 
-1. Update passwords in .env
-2. chmod +x monitoring.sh
-3.
+1. cd /docker/bin; chmod +x monitoring.sh
+2. vim monitoring.sh // Set BASE_DIR and passwords if needed.

@@ -10,9 +10,9 @@ services:
             MYSQL_USER: "grafana"
             MYSQL_PASSWORD: "${GRAFANA_DB_PASS}"
         volumes:
-            - ${HOME}/${ROOT_DIR}/mariadb/log:/var/log/mysql
-            - ${HOME}/${ROOT_DIR}/mariadb/data:/var/lib/mysql
-            - ${HOME}/${ROOT_DIR}/mariadb/server.cnf:/etc/mysql/conf.d/server.cnf
+            - ${ROOT_DIR}/mariadb/log:/var/log/mysql
+            - ${ROOT_DIR}/mariadb/data:/var/lib/mysql
+            - ${ROOT_DIR}/mariadb/server.cnf:/etc/mysql/conf.d/server.cnf
         ulimits:
             nofile:
                 soft: 40000
@@ -52,9 +52,9 @@ services:
         ports:
             - "3000:3000"
         volumes:
-            - ${HOME}/${ROOT_DIR}/grafana/log:/var/log/grafana
-            - ${HOME}/${ROOT_DIR}/grafana/data:/var/lib/grafana
-            - ${HOME}/${ROOT_DIR}/grafana/provisioning/:/etc/grafana/provisioning/
+            - ${ROOT_DIR}/grafana/log:/var/log/grafana
+            - ${ROOT_DIR}/grafana/data:/var/lib/grafana
+            - ${ROOT_DIR}/grafana/provisioning/:/etc/grafana/provisioning/
         depends_on:
             - mariadb
             - renderer
@@ -71,15 +71,15 @@ services:
             HOST_MOUNT_PREFIX: "/hostfs"
         volumes:
             - /:/hostfs:ro
-            - ${HOME}/${ROOT_DIR}/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+            - ${ROOT_DIR}/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
             - /var/run/docker.sock:/var/run/docker.sock
 
     prometheus:
         image: "${PROMETHEUS_IMAGE}"
         restart: "always"
         volumes:
-            - ${HOME}/${ROOT_DIR}/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-            - ${HOME}/${ROOT_DIR}/prometheus/data:/prometheus
+            - ${ROOT_DIR}/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+            - ${ROOT_DIR}/prometheus/data:/prometheus
         command:
             - '--config.file=/etc/prometheus/prometheus.yml'
             - '--storage.tsdb.path=/prometheus'
@@ -87,3 +87,12 @@ services:
             - '--web.console.templates=/etc/prometheus/consoles'
             - '--storage.tsdb.retention.time=200h'
             - '--web.enable-lifecycle'
+    postgres:
+        image: "${POSTGRES_IMAGE}"
+        restart: "always"
+        volumes:
+        - ${ROOT_DIR}\postgres\data:/var/lib/postgresql/data
+        #- ${ROOT_DIR}\postgres\init-user-db.sh:/docker-entrypoint-initdb.d/init-user-db.sh
+        environment:
+        - POSTGRES_PASSWORD="${DB_PW}"
+        - POSTGRES_USER=postgres
