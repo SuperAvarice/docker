@@ -1,6 +1,19 @@
 version: '3'
 
+
+volumes:
+    
+    grafana_data: {}
+    mariadb_data: {}
+    prometheus_data: {}
+    postgres_data: {}
+    vm_data: {}
+    vm_data_2: {}
+    vmagent_data: {}
+
+
 services:
+
     mariadb:
         image: "${MARIADB_IMAGE}"
         restart: "always"
@@ -10,8 +23,7 @@ services:
             MYSQL_USER: "grafana"
             MYSQL_PASSWORD: "${DB_PW}"
         volumes:
-            - ${ROOT_DIR}/mariadb/log:/var/log/mysql
-            - ${ROOT_DIR}/mariadb/data:/var/lib/mysql
+            - mariadb_data:/var/lib/mysql
             - ${ROOT_DIR}/mariadb/server.cnf:/etc/mysql/conf.d/server.cnf
         ulimits:
             nofile:
@@ -31,6 +43,7 @@ services:
             GF_DATABASE_NAME: "grafana"
             GF_DATABASE_USER: "grafana"
             GF_DATABASE_PASSWORD: "${DB_PW}"
+            GF_DATABASE_MAX_IDLE_CONN: "1000"
             GF_ANALYTICS_REPORTING_ENABLED: "false"
             GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
             GF_SECURITY_ADMIN_USER: "${ADMIN_USER}"
@@ -48,12 +61,11 @@ services:
             GF_RENDERING_CALLBACK_URL: "http://grafana:3000/"
             HTTPS_PROXY: "${http_proxy}"
             HTTP_PROXY: "${http_proxy}"
-            NO_PROXY: "${no_proxy},localhost,renderer,grafana,mariadb,prometheus"
+            NO_PROXY: "${no_proxy},localhost,renderer,grafana,mariadb,prometheus,victoriametrics,victoriametrics-2"
         ports:
             - "3000:3000"
         volumes:
-            - ${ROOT_DIR}/grafana/log:/var/log/grafana
-            - ${ROOT_DIR}/grafana/data:/var/lib/grafana
+            - grafana_data:/var/lib/grafana
             - ${ROOT_DIR}/grafana/provisioning/:/etc/grafana/provisioning/
         depends_on:
             - mariadb
@@ -62,6 +74,7 @@ services:
     telegraf:
         image: "${TELEGRAF_IMAGE}"
         restart: "always"
+        user: "telegraf:${DOCKER_GID}"
         environment:
             HOST_ETC: "/hostfs/etc"
             HOST_PROC: "/hostfs/proc"
@@ -74,12 +87,22 @@ services:
             - ${ROOT_DIR}/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
             - /var/run/docker.sock:/var/run/docker.sock
 
+    postgres:
+        image: "${POSTGRES_IMAGE}"
+        restart: "always"
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+            - ${ROOT_DIR}/postgres/init-user-db.sh:/docker-entrypoint-initdb.d/init-user-db.sh
+        environment:
+            POSTGRES_PASSWORD: "${DB_PW}"
+            POSTGRES_USER: postgres
+        
     prometheus:
         image: "${PROMETHEUS_IMAGE}"
         restart: "always"
         volumes:
             - ${ROOT_DIR}/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-            - ${ROOT_DIR}/prometheus/data:/prometheus
+            - prometheus_data:/prometheus
         command:
             - '--config.file=/etc/prometheus/prometheus.yml'
             - '--storage.tsdb.path=/prometheus'
@@ -87,12 +110,42 @@ services:
             - '--web.console.templates=/etc/prometheus/consoles'
             - '--storage.tsdb.retention.time=200h'
             - '--web.enable-lifecycle'
-    postgres:
-        image: "${POSTGRES_IMAGE}"
+
+    victoriametrics:
+        image: "${VICTORIA_IMAGE}"
         restart: "always"
         volumes:
-        - ${ROOT_DIR}/postgres/data:/var/lib/postgresql/data
-        #- ${ROOT_DIR}/postgres/init-user-db.sh:/docker-entrypoint-initdb.d/init-user-db.sh
-        environment:
-        - POSTGRES_PASSWORD="${DB_PW}"
-        - POSTGRES_USER=postgres
+            - vm_data:/storage
+        command:
+            - "--storageDataPath=/storage"
+
+    victoriametrics-2:
+        image: "${VICTORIA_IMAGE}"
+        restart: "always"
+        volumes:
+            - vm_data_2:/storage
+        command:
+            - "--storageDataPath=/storage"
+
+    vmagent:
+        image: "${VMAGENT_IMAGE}"
+        restart: "always"
+        depends_on:
+            - victoriametrics
+            - victoriametrics-2
+        volumes:
+            - vmagent_data:/vmagentdata
+            - ${ROOT_DIR}/vmagent/vma-drop-list.yml:/etc/prometheus/vma-drop-list.yml
+            - ${ROOT_DIR}/vmagent/vma-allow-list.yml:/etc/prometheus/vma-allow-list.yml
+        ports:
+            - "8429:8429"
+        command:
+            - "--remoteWrite.queues=64"
+            - "--remoteWrite.maxDiskUsagePerURL=250000000000"
+            - "--remoteWrite.tmpDataPath=/vmagentdata"
+            - "--remoteWrite.url=http://victoriametrics-2:8428/api/v1/write"
+            - "--remoteWrite.urlRelabelConfig=/etc/prometheus/vma-allow-list.yml"
+            - "--remoteWrite.url=http://victoriametrics:8428/api/v1/write"
+            - "--remoteWrite.urlRelabelConfig=/etc/prometheus/vma-drop-list.yml"
+            #- "--remoteWrite.relabelDebug"
+    
