@@ -11,7 +11,7 @@ if [ ! -f $SETUP_FILE ]; then
   echo 'Setup file not found. Creating with defaults.'
   DEFAULT_DB_PW=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c20)
   DEFAULT_ADMIN_PW=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c20)
-  echo "BASE_DIR=\"${HOME}/workspace/docker\"" >> ${SETUP_FILE}
+  echo "BASE_DIR=\"${HOME}/docker\"" >> ${SETUP_FILE}
   echo "DB_PW=\"${DEFAULT_DB_PW}\"" >> ${SETUP_FILE}
   echo "ADMIN_PW=\"${DEFAULT_ADMIN_PW}\"" >> ${SETUP_FILE}
 fi
