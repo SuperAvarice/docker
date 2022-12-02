@@ -1,1 +1,3 @@
-asfd
+- action: drop_metrics
+  regex:
+    - "none"
