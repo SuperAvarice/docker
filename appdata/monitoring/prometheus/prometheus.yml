@@ -34,3 +34,6 @@ scrape_configs:
     honor_labels: true
     static_configs:
       - targets: ['telegraf:9273']
+
+remote_write:
+  - url: http://vmagent:8429/api/v1/write
