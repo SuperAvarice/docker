@@ -1,19 +1,28 @@
 #!/bin/bash
 
-BASE_DIR="${HOME}/workspace"
-DB_PW=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c20)
-ADMIN_PW=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c20)
-DOCKER_GID=$(stat -c '%g' /var/run/docker.sock)
-
-BUILD_DIR="${BASE_DIR}/docker/build/monitoring"
-BIN_DIR="${BASE_DIR}/docker/bin"
-DATA_DIR="${BASE_DIR}/docker/appdata/monitoring"
-
 if [[ -z "$@" ]]; then
     echo >&2 "Usage: $0 <command>"
     echo >&2 "command = up, down, restart, clean, logs"
     exit 1
 fi
+
+DEFAULT_BASE_DIR="${HOME}/workspace/docker"
+DEFAULT_DB_PW=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c20)
+DEFAULT_ADMIN_PW=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c20)
+
+SETUP_FILE="./env.cfg"
+if [ ! -f $SETUP_FILE ]; then
+  echo 'Setup file not found. Creating with defaults.'
+  echo "BASE_DIR=${DEFAULT_BASE_DIR}" >> ${SETUP_FILE}
+  echo "DB_PW=${DEFAULT_DB_PW}" >> ${SETUP_FILE}
+  echo "ADMIN_PW=${DEFAULT_ADMIN_PW}" >> ${SETUP_FILE}
+fi
+source $SETUP_FILE
+
+DOCKER_GID=$(stat -c '%g' /var/run/docker.sock)
+BUILD_DIR="${BASE_DIR}/build/monitoring"
+BIN_DIR="${BASE_DIR}/bin"
+DATA_DIR="${BASE_DIR}/appdata/monitoring"
 
 case "$1" in
   up)
