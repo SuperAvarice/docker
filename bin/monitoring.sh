@@ -6,14 +6,12 @@ if [[ -z "$@" ]]; then
     exit 1
 fi
 
-DEFAULT_BASE_DIR="${HOME}/workspace/docker"
-DEFAULT_DB_PW=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c20)
-DEFAULT_ADMIN_PW=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c20)
-
 SETUP_FILE="./env.cfg"
 if [ ! -f $SETUP_FILE ]; then
   echo 'Setup file not found. Creating with defaults.'
-  echo "BASE_DIR=${DEFAULT_BASE_DIR}" >> ${SETUP_FILE}
+  DEFAULT_DB_PW=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c20)
+  DEFAULT_ADMIN_PW=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c20)
+  echo "BASE_DIR=${HOME}/workspace/docker" >> ${SETUP_FILE}
   echo "DB_PW=${DEFAULT_DB_PW}" >> ${SETUP_FILE}
   echo "ADMIN_PW=${DEFAULT_ADMIN_PW}" >> ${SETUP_FILE}
 fi
@@ -28,9 +26,10 @@ case "$1" in
   up)
     cd $BUILD_DIR
     ROOT_DIR=${DATA_DIR} DB_PW="${DB_PW}" ADMIN_PW="${ADMIN_PW}" DOCKER_GID="${DOCKER_GID}" docker-compose -p "Monitoring" up -d
-    echo "Go to -- http://${HOSTNAME}:3000"
+    echo "Go to -- http://${HOSTNAME}:3000 for Grafana"
     echo "Database Password: ${DB_PW}"
     echo "Grafana Admin Password: ${ADMIN_PW}"
+    echo "Edit ${SETUP_FILE} to change settings."
     cd $BIN_DIR
   ;;
   down)
